@@ -7,4 +7,11 @@ export const apiClient = new ApiClient({
 });
 
 export { ApiClient };
-export type { ClientConfig, HealthResponseDto } from '../../generated/index.js';
+export type {
+  ClientConfig,
+  CreateIssueRequestDto,
+  HealthResponseDto,
+  IssueResponseDto,
+  ListIssuesResponseDto,
+  UpsertIssueRequestDto,
+} from '../../generated/index.js';
