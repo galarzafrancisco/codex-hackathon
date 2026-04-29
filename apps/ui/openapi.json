@@ -1,0 +1,508 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The backend is running.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Read backend health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/issues": {
+      "get": {
+        "operationId": "IssuesController_listIssues",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Issues sorted for dispatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListIssuesResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List normalized issues",
+        "tags": [
+          "issues"
+        ]
+      },
+      "post": {
+        "operationId": "IssuesController_createIssue",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Issue fields to create.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIssueRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The issue was created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a tracker issue",
+        "tags": [
+          "issues"
+        ]
+      }
+    },
+    "/api/v1/issues/{id}": {
+      "get": {
+        "operationId": "IssuesController_getIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Stable tracker-internal issue ID.",
+            "schema": {
+              "example": "issue_01HZY8Z3P8M5N7R1E2A4C6D9F0",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The normalized issue record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No issue exists for the requested tracker-internal ID."
+          }
+        },
+        "summary": "Read a normalized issue",
+        "tags": [
+          "issues"
+        ]
+      },
+      "put": {
+        "operationId": "IssuesController_upsertIssue",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Stable tracker-internal issue ID.",
+            "schema": {
+              "example": "issue_01HZY8Z3P8M5N7R1E2A4C6D9F0",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Normalized issue record fields to create or replace.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertIssueRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The normalized issue record was stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create or replace a normalized issue",
+        "tags": [
+          "issues"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Codex Symphony Backend",
+    "description": "Starter backend API for the Codex Symphony monorepo.",
+    "version": "0.0.1",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Current backend health status.",
+            "enum": [
+              "ok"
+            ],
+            "example": "ok"
+          },
+          "service": {
+            "type": "string",
+            "description": "Stable service identifier for the backend API.",
+            "example": "backend"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "UTC timestamp for when the health response was produced.",
+            "example": "2026-04-29T00:00:00.000Z",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "timestamp"
+        ]
+      },
+      "IssueBlockerRefResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable tracker-internal ID for the blocking issue when known.",
+            "example": "issue_01HZY8Z3P8M5N7R1E2A4C6D9F1",
+            "nullable": true
+          },
+          "identifier": {
+            "type": "string",
+            "description": "Human-readable ticket key for the blocking issue when known.",
+            "example": "ABC-122",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "description": "Current tracker state name for the blocking issue when known.",
+            "example": "In Progress",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Tracker creation timestamp for the blocking issue when known.",
+            "example": "2026-04-29T00:00:00.000Z",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Tracker update timestamp for the blocking issue when known.",
+            "example": "2026-04-29T01:00:00.000Z",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "identifier",
+          "state",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "IssueResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable tracker-internal issue ID.",
+            "example": "issue_01HZY8Z3P8M5N7R1E2A4C6D9F0"
+          },
+          "identifier": {
+            "type": "string",
+            "description": "Human-readable ticket key.",
+            "example": "ABC-123"
+          },
+          "title": {
+            "type": "string",
+            "description": "Issue title.",
+            "example": "Implement worker dispatch queue"
+          },
+          "description": {
+            "type": "string",
+            "description": "Issue description, if the tracker provided one.",
+            "example": "Build the queue used by orchestration to dispatch agent runs.",
+            "nullable": true
+          },
+          "priority": {
+            "type": "number",
+            "description": "Dispatch priority. Lower numbers are higher priority.",
+            "example": 1,
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "description": "Current tracker state name.",
+            "example": "Ready"
+          },
+          "branch_name": {
+            "type": "string",
+            "description": "Tracker-provided branch metadata if available.",
+            "example": "feature/abc-123-worker-dispatch",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Tracker issue URL if available.",
+            "example": "https://tracker.example.com/ABC-123",
+            "nullable": true
+          },
+          "labels": {
+            "description": "Lowercase normalized issue labels.",
+            "example": [
+              "backend",
+              "orchestration"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blocked_by": {
+            "description": "Normalized blocker references for the issue.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueBlockerRefResponseDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "identifier",
+          "title",
+          "description",
+          "priority",
+          "state",
+          "branch_name",
+          "url",
+          "labels",
+          "blocked_by"
+        ]
+      },
+      "ListIssuesResponseDto": {
+        "type": "object",
+        "properties": {
+          "issues": {
+            "description": "Issues sorted for dispatch, with lower priorities first and null priorities last.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueResponseDto"
+            }
+          }
+        },
+        "required": [
+          "issues"
+        ]
+      },
+      "IssueBlockerRefRequestDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable tracker-internal ID for the blocking issue when known.",
+            "example": "issue_01HZY8Z3P8M5N7R1E2A4C6D9F1",
+            "nullable": true
+          },
+          "identifier": {
+            "type": "string",
+            "description": "Human-readable ticket key for the blocking issue when known.",
+            "example": "ABC-122",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "description": "Current tracker state name for the blocking issue when known.",
+            "example": "In Progress",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Tracker creation timestamp for the blocking issue when known.",
+            "example": "2026-04-29T00:00:00.000Z",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Tracker update timestamp for the blocking issue when known.",
+            "example": "2026-04-29T01:00:00.000Z",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateIssueRequestDto": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Human-readable ticket key.",
+            "example": "ABC-123"
+          },
+          "title": {
+            "type": "string",
+            "description": "Issue title.",
+            "example": "Implement worker dispatch queue"
+          },
+          "description": {
+            "type": "string",
+            "description": "Issue description, if the tracker provided one.",
+            "example": "Build the queue used by orchestration to dispatch agent runs.",
+            "nullable": true
+          },
+          "priority": {
+            "type": "number",
+            "description": "Dispatch priority. Lower numbers are higher priority.",
+            "example": 1,
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "description": "Current tracker state name.",
+            "example": "Ready"
+          },
+          "branch_name": {
+            "type": "string",
+            "description": "Tracker-provided branch metadata if available.",
+            "example": "feature/abc-123-worker-dispatch",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Tracker issue URL if available.",
+            "example": "https://tracker.example.com/ABC-123",
+            "nullable": true
+          },
+          "labels": {
+            "description": "Issue labels. Values are normalized to lowercase before storage.",
+            "example": [
+              "Backend",
+              "Orchestration"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blocked_by": {
+            "description": "Normalized blocker references for the issue.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueBlockerRefRequestDto"
+            }
+          }
+        },
+        "required": [
+          "identifier",
+          "title",
+          "state"
+        ]
+      },
+      "UpsertIssueRequestDto": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Human-readable ticket key.",
+            "example": "ABC-123"
+          },
+          "title": {
+            "type": "string",
+            "description": "Issue title.",
+            "example": "Implement worker dispatch queue"
+          },
+          "description": {
+            "type": "string",
+            "description": "Issue description, if the tracker provided one.",
+            "example": "Build the queue used by orchestration to dispatch agent runs.",
+            "nullable": true
+          },
+          "priority": {
+            "type": "number",
+            "description": "Dispatch priority. Lower numbers are higher priority.",
+            "example": 1,
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "description": "Current tracker state name.",
+            "example": "Ready"
+          },
+          "branch_name": {
+            "type": "string",
+            "description": "Tracker-provided branch metadata if available.",
+            "example": "feature/abc-123-worker-dispatch",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "Tracker issue URL if available.",
+            "example": "https://tracker.example.com/ABC-123",
+            "nullable": true
+          },
+          "labels": {
+            "description": "Issue labels. Values are normalized to lowercase before storage.",
+            "example": [
+              "Backend",
+              "Orchestration"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blocked_by": {
+            "description": "Normalized blocker references for the issue.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IssueBlockerRefRequestDto"
+            }
+          }
+        },
+        "required": [
+          "identifier",
+          "title",
+          "state"
+        ]
+      }
+    }
+  }
+}
