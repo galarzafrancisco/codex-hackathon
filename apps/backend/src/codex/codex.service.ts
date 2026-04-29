@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CodexAppServerRpcClient } from './codex-app-server-rpc.client';
 import type {
   CodexModelResult,
@@ -45,7 +45,10 @@ type ThreadResponseWire = {
 
 @Injectable()
 export class CodexService {
-  constructor(private readonly rpcClient: CodexAppServerRpcClient) {}
+  constructor(
+    @Inject(CodexAppServerRpcClient)
+    private readonly rpcClient: CodexAppServerRpcClient,
+  ) {}
 
   async listModels(input: ListCodexModelsInput): Promise<ListCodexModelsResult> {
     const result = await this.rpcClient.request<CodexPage<CodexModelWire>>('model/list', {
