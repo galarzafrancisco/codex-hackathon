@@ -70,3 +70,52 @@ export type StartCodexThreadInput = {
 export type StartCodexThreadResult = {
   thread: CodexThreadResult;
 };
+
+export type CodexMentionInput = {
+  name: string;
+  path: string;
+};
+
+export type CodexSkillInput = {
+  name: string;
+  path: string;
+};
+
+export type CodexLocalImageInput = {
+  path: string;
+};
+
+export type SendCodexThreadMessageInput = {
+  threadId: string;
+  message: string;
+  mentions?: CodexMentionInput[];
+  skills?: CodexSkillInput[];
+  localImages?: CodexLocalImageInput[];
+  model?: string;
+  cwd?: string;
+  approvalPolicy?: string;
+  sandboxPolicy?: Record<string, unknown>;
+  effort?: string;
+  summary?: string;
+  personality?: string;
+  resume?: boolean;
+};
+
+export type CodexThreadMessageStreamEventResult = {
+  event: 'turn_response' | 'notification';
+  method: string | null;
+  payload: unknown;
+};
+
+export type SteerCodexTurnInput = {
+  threadId: string;
+  turnId: string;
+  message: string;
+  mentions?: CodexMentionInput[];
+  skills?: CodexSkillInput[];
+  localImages?: CodexLocalImageInput[];
+};
+
+export type SteerCodexTurnResult = {
+  turnId: string;
+};

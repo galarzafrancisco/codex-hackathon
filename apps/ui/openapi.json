@@ -185,6 +185,244 @@
         ]
       }
     },
+    "/api/v1/codex/threads/{thread_id}/messages/stream": {
+      "get": {
+        "description": "Starts a turn with the supplied user message. The response body is Server-Sent Events; each data frame has event, method, and payload fields.",
+        "operationId": "CodexController_sendThreadMessage",
+        "parameters": [
+          {
+            "name": "resume",
+            "required": false,
+            "in": "query",
+            "description": "Resume and subscribe to the thread before starting the turn.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "personality",
+            "required": false,
+            "in": "query",
+            "description": "Codex personality override for this and later turns on the thread.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "summary",
+            "required": false,
+            "in": "query",
+            "description": "Reasoning summary override for this and later turns on the thread.",
+            "schema": {
+              "enum": [
+                "auto",
+                "concise",
+                "detailed",
+                "none"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "effort",
+            "required": false,
+            "in": "query",
+            "description": "Reasoning effort override for this and later turns on the thread.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sandbox_policy_json",
+            "required": false,
+            "in": "query",
+            "description": "JSON-encoded sandbox policy object to pass through to Codex app-server turn/start.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "approval_policy",
+            "required": false,
+            "in": "query",
+            "description": "Approval policy override for this turn.",
+            "schema": {
+              "enum": [
+                "untrusted",
+                "on-request",
+                "never"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "cwd",
+            "required": false,
+            "in": "query",
+            "description": "Working directory override for this and later turns on the thread.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "model",
+            "required": false,
+            "in": "query",
+            "description": "Model override for this and later turns on the thread.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "local_image_path",
+            "required": false,
+            "in": "query",
+            "description": "Absolute local image paths to include with the turn.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "skill_path",
+            "required": false,
+            "in": "query",
+            "description": "Absolute skill paths. Pair by index with skill_name.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "skill_name",
+            "required": false,
+            "in": "query",
+            "description": "Skill names. Pair by index with skill_path.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "mention_path",
+            "required": false,
+            "in": "query",
+            "description": "Codex app-server mention paths. Pair by index with mention_name.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "mention_name",
+            "required": false,
+            "in": "query",
+            "description": "App connector mention names. Pair by index with mention_path.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "message",
+            "required": true,
+            "in": "query",
+            "description": "User text to send to Codex as the next turn input.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "thread_id",
+            "required": true,
+            "in": "path",
+            "description": "Stable Codex thread identifier.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE stream of Codex app-server turn response and notification events.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "example": "data: {\"event\":\"notification\",\"method\":\"item/agentMessage/delta\",\"payload\":{\"text\":\"Hello\"}}\\n\\n"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Send a Codex thread message and stream app-server events",
+        "tags": [
+          "codex"
+        ]
+      }
+    },
+    "/api/v1/codex/threads/{thread_id}/turns/{turn_id}/steer": {
+      "post": {
+        "operationId": "CodexController_steerTurn",
+        "parameters": [
+          {
+            "name": "turn_id",
+            "required": true,
+            "in": "path",
+            "description": "Expected active Codex turn identifier.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "thread_id",
+            "required": true,
+            "in": "path",
+            "description": "Stable Codex thread identifier.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Additional user input to append to the active turn.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SteerCodexTurnRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The active turn accepted the steering input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SteerCodexTurnResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Append user input to an active Codex turn",
+        "tags": [
+          "codex"
+        ]
+      }
+    },
     "/api/v1/issues": {
       "get": {
         "operationId": "IssuesController_listIssues",
@@ -628,6 +866,104 @@
         },
         "required": [
           "thread"
+        ]
+      },
+      "CodexMentionInputDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "User-facing connector or mention name.",
+            "example": "GitHub"
+          },
+          "path": {
+            "type": "string",
+            "description": "Codex app-server mention path, such as an app connector URI.",
+            "example": "app://github"
+          }
+        },
+        "required": [
+          "name",
+          "path"
+        ]
+      },
+      "CodexSkillInputDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Skill name to invoke.",
+            "example": "skill-creator"
+          },
+          "path": {
+            "type": "string",
+            "description": "Absolute path to the skill SKILL.md file.",
+            "example": "/Users/me/.codex/skills/skill-creator/SKILL.md"
+          }
+        },
+        "required": [
+          "name",
+          "path"
+        ]
+      },
+      "CodexLocalImageInputDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Absolute path to a local image file.",
+            "example": "/tmp/screenshot.png"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "SteerCodexTurnRequestDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Additional user text to append to the active Codex turn.",
+            "example": "Actually focus on the failing tests first."
+          },
+          "mentions": {
+            "description": "App connector mentions to include with the text input.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodexMentionInputDto"
+            }
+          },
+          "skills": {
+            "description": "Skills to include with the text input.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodexSkillInputDto"
+            }
+          },
+          "local_images": {
+            "description": "Local images to include with the text input.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodexLocalImageInputDto"
+            }
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "SteerCodexTurnResponseDto": {
+        "type": "object",
+        "properties": {
+          "turn_id": {
+            "type": "string",
+            "description": "Accepted active turn identifier.",
+            "example": "turn_456"
+          }
+        },
+        "required": [
+          "turn_id"
         ]
       },
       "IssueBlockerRefResponseDto": {

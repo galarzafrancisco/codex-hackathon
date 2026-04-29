@@ -1,14 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CodexAppServerRpcClient } from './codex-app-server-rpc.client';
+import type { CodexAppServerInputItem } from './codex-app-server-rpc.client';
 import type {
+  CodexLocalImageInput,
   CodexModelResult,
+  CodexSkillInput,
   CodexThreadResult,
+  CodexThreadMessageStreamEventResult,
   ListCodexModelsInput,
   ListCodexModelsResult,
   ListCodexThreadsInput,
   ListCodexThreadsResult,
+  SendCodexThreadMessageInput,
   StartCodexThreadInput,
   StartCodexThreadResult,
+  SteerCodexTurnInput,
+  SteerCodexTurnResult,
 } from './dto/service/codex.service.types';
 
 type CodexPage<T> = {
@@ -41,6 +48,10 @@ type CodexThreadWire = {
 
 type ThreadResponseWire = {
   thread?: CodexThreadWire;
+};
+
+type SteerTurnResponseWire = {
+  turnId?: unknown;
 };
 
 @Injectable()
@@ -99,6 +110,75 @@ export class CodexService {
       thread: mapThread(result.thread),
     };
   }
+
+  async *sendThreadMessage(
+    input: SendCodexThreadMessageInput,
+  ): AsyncIterable<CodexThreadMessageStreamEventResult> {
+    for await (const event of this.rpcClient.streamTurn({
+      threadId: input.threadId,
+      input: mapMessageInput(input),
+      model: input.model,
+      cwd: input.cwd,
+      approvalPolicy: input.approvalPolicy,
+      sandboxPolicy: input.sandboxPolicy,
+      effort: input.effort,
+      summary: input.summary,
+      personality: input.personality,
+      resume: input.resume,
+    })) {
+      if (event.type === 'turn_response') {
+        yield {
+          event: 'turn_response',
+          method: null,
+          payload: event.result,
+        };
+        continue;
+      }
+
+      yield {
+        event: 'notification',
+        method: event.method,
+        payload: event.params,
+      };
+    }
+  }
+
+  async steerTurn(input: SteerCodexTurnInput): Promise<SteerCodexTurnResult> {
+    const result = await this.rpcClient.steerTurn<SteerTurnResponseWire>({
+      threadId: input.threadId,
+      expectedTurnId: input.turnId,
+      input: mapMessageInput(input),
+    });
+
+    return {
+      turnId: normalizeRequiredString(result.turnId, 'turn.turnId'),
+    };
+  }
+}
+
+function mapMessageInput(input: {
+  message: string;
+  mentions?: Array<{ name: string; path: string }>;
+  skills?: CodexSkillInput[];
+  localImages?: CodexLocalImageInput[];
+}): CodexAppServerInputItem[] {
+  return [
+    { type: 'text', text: input.message },
+    ...(input.mentions ?? []).map((mention) => ({
+      type: 'mention',
+      name: mention.name,
+      path: mention.path,
+    })),
+    ...(input.skills ?? []).map((skill) => ({
+      type: 'skill',
+      name: skill.name,
+      path: skill.path,
+    })),
+    ...(input.localImages ?? []).map((image) => ({
+      type: 'localImage',
+      path: image.path,
+    })),
+  ];
 }
 
 function mapModel(model: CodexModelWire): CodexModelResult {
