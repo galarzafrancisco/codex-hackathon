@@ -14,10 +14,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "types": ["vite/client"],
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "generated"]
 }

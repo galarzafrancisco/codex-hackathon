@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "copy:openapi": "cp ../backend/openapi.json openapi.json",
+    "generate:client": "npm run copy:openapi && openapi-sdkgen ./openapi.json ./generated",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "tsc -b --pretty false"

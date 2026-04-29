@@ -35,6 +35,16 @@ npm run openapi
 
 The generated spec is written to `apps/backend/openapi.json`.
 
+Generate the frontend API client from the backend OpenAPI spec:
+
+```bash
+npm run generate:api
+```
+
+This writes the backend spec to `apps/backend/openapi.json`, copies it to
+`apps/ui/openapi.json`, and runs `openapi-sdkgen ./openapi.json ./generated`
+inside `apps/ui`.
+
 To run multiple copies side by side, use the stack scripts:
 
 ```bash
