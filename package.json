@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "workspaces": [
-    "apps/backend",
-    "apps/ui"
+    "apps/*"
   ],
   "scripts": {
     "dev": "concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
@@ -14,8 +13,9 @@
     "dev:4": "dotenv -e stack4.env -- concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
     "dev:5": "dotenv -e stack5.env -- concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
     "start:dev": "npm run dev",
-    "build": "npm run build -w apps/backend && npm run build -w apps/ui",
-    "test": "npm run test -w apps/backend && npm run test -w apps/ui"
+    "build": "npm run build --workspaces --if-present",
+    "openapi": "npm run generate:openapi -w apps/backend",
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
