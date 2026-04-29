@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../../api/client';
-import type { CreateIssueRequestDto, IssueResponseDto, UpsertIssueRequestDto } from '../../api/client';
+import type { CreateIssueRequestDto, IssueResponseDto } from '../../api/client';
 
 export type IssueBoardStatus = 'not_started' | 'in_progress' | 'for_review' | 'done';
 
@@ -10,16 +10,14 @@ export interface NewIssueForm {
   labels: string;
   priority: string;
   branchName: string;
-  status: IssueBoardStatus;
 }
 
 const initialNewIssueForm: NewIssueForm = {
   title: '',
   description: '',
   labels: '',
-  priority: '',
+  priority: '1',
   branchName: '',
-  status: 'not_started',
 };
 
 export function useIssuesBoard() {
@@ -27,7 +25,6 @@ export function useIssuesBoard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [updatingIssueId, setUpdatingIssueId] = useState<string | null>(null);
 
   const loadIssues = useCallback(async (signal?: AbortSignal) => {
     setIsLoading(true);
@@ -65,7 +62,7 @@ export function useIssuesBoard() {
         identifier: createIssueIdentifier(form.title),
         title: form.title.trim(),
         description: normalizeOptionalString(form.description),
-        state: form.status,
+        state: 'not_started',
         labels: parseLabels(form.labels),
         priority: parsePriority(form.priority),
         branch_name: normalizeOptionalString(form.branchName),
@@ -78,40 +75,6 @@ export function useIssuesBoard() {
       throw cause;
     } finally {
       setIsCreating(false);
-    }
-  }, []);
-
-  const updateIssueStatus = useCallback(async (issue: IssueResponseDto, state: IssueBoardStatus) => {
-    if (normalizeStatus(issue.state) === state) {
-      return;
-    }
-
-    setUpdatingIssueId(issue.id);
-    setError(null);
-
-    try {
-      const body: UpsertIssueRequestDto = {
-        identifier: issue.identifier,
-        title: issue.title,
-        description: issue.description,
-        priority: issue.priority,
-        state,
-        branch_name: issue.branch_name,
-        url: issue.url,
-        labels: issue.labels,
-        blocked_by: issue.blocked_by,
-      };
-      const updatedIssue = await apiClient.issues.IssuesController_upsertIssue({
-        id: issue.id,
-        body,
-      });
-      setIssues((currentIssues) =>
-        currentIssues.map((currentIssue) => (currentIssue.id === updatedIssue.id ? updatedIssue : currentIssue)),
-      );
-    } catch (cause) {
-      setError(getErrorMessage(cause));
-    } finally {
-      setUpdatingIssueId(null);
     }
   }, []);
 
@@ -138,8 +101,49 @@ export function useIssuesBoard() {
     isLoading,
     issues: sortedIssues,
     reloadIssues: loadIssues,
-    updateIssueStatus,
-    updatingIssueId,
+  };
+}
+
+export function useIssueDetails(issueId: string) {
+  const [issue, setIssue] = useState<IssueResponseDto | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadIssue = useCallback(
+    async (signal?: AbortSignal) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await apiClient.issues.IssuesController_getIssue({ id: issueId, signal });
+        setIssue(response);
+      } catch (cause) {
+        if (signal?.aborted) {
+          return;
+        }
+
+        setError(getErrorMessage(cause));
+      } finally {
+        if (!signal?.aborted) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [issueId],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void loadIssue(controller.signal);
+
+    return () => controller.abort();
+  }, [loadIssue]);
+
+  return {
+    error,
+    isLoading,
+    issue,
+    reloadIssue: loadIssue,
   };
 }
 

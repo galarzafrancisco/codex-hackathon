@@ -1,6 +1,12 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { IssueResponseDto } from '../../api/client';
-import { normalizeStatus, type IssueBoardStatus, type NewIssueForm, useIssuesBoard } from './useIssuesBoard';
+import {
+  normalizeStatus,
+  type IssueBoardStatus,
+  type NewIssueForm,
+  useIssueDetails,
+  useIssuesBoard,
+} from './useIssuesBoard';
 import './IssueBoard.css';
 
 const columns: Array<{
@@ -14,6 +20,12 @@ const columns: Array<{
   { status: 'done', label: 'Done', tone: 'green' },
 ];
 
+const priorityOptions = [
+  { label: 'Low', value: '1' },
+  { label: 'Mid', value: '2' },
+  { label: 'High', value: '3' },
+];
+
 export function IssueBoard() {
   const {
     createIssue,
@@ -23,34 +35,16 @@ export function IssueBoard() {
     isLoading,
     issues,
     reloadIssues,
-    updateIssueStatus,
-    updatingIssueId,
   } = useIssuesBoard();
-  const [query, setQuery] = useState('');
   const [isNewIssueOpen, setIsNewIssueOpen] = useState(false);
   const [form, setForm] = useState<NewIssueForm>(initialNewIssueForm);
-
-  const filteredIssues = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return issues;
-    }
-
-    return issues.filter((issue) => {
-      const searchableText = [issue.title, issue.identifier, issue.branch_name, ...issue.labels]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return searchableText.includes(normalizedQuery);
-    });
-  }, [issues, query]);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const issuesByStatus = useMemo(
     () =>
       columns.reduce<Record<IssueBoardStatus, IssueResponseDto[]>>(
         (groupedIssues, column) => {
-          groupedIssues[column.status] = filteredIssues.filter((issue) => normalizeStatus(issue.state) === column.status);
+          groupedIssues[column.status] = issues.filter((issue) => normalizeStatus(issue.state) === column.status);
           return groupedIssues;
         },
         {
@@ -60,8 +54,22 @@ export function IssueBoard() {
           not_started: [],
         },
       ),
-    [filteredIssues],
+    [issues],
   );
+
+  useEffect(() => {
+    if (!isNewIssueOpen) {
+      return;
+    }
+
+    titleInputRef.current?.focus();
+    titleInputRef.current?.select();
+  }, [isNewIssueOpen]);
+
+  function openNewIssue() {
+    setForm(initialNewIssueForm);
+    setIsNewIssueOpen(true);
+  }
 
   async function handleCreateIssue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -77,38 +85,7 @@ export function IssueBoard() {
 
   return (
     <main className="app-shell">
-      <section className="issue-board" aria-labelledby="issues-title">
-        <header className="issue-board__toolbar">
-          <div className="issue-board__title">
-            <span className="issue-board__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" role="img">
-                <path d="M7 12.2 10.2 15.4 17.4 7.8" />
-              </svg>
-            </span>
-            <h1 id="issues-title">Issues</h1>
-          </div>
-          <div className="issue-board__actions">
-            <label className="search-field">
-              <span className="search-field__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="img">
-                  <circle cx="10.5" cy="10.5" r="5.8" />
-                  <path d="m15 15 4 4" />
-                </svg>
-              </span>
-              <span className="sr-only">Search issues</span>
-              <input
-                type="search"
-                placeholder="Search issues..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-            </label>
-            <button className="button button--primary" type="button" onClick={() => setIsNewIssueOpen(true)}>
-              New issue
-            </button>
-          </div>
-        </header>
-
+      <section className="issue-board" aria-label="Issues">
         {error ? (
           <div className="notice" role="alert">
             <span>{error}</span>
@@ -131,18 +108,19 @@ export function IssueBoard() {
                     {issuesByStatus[column.status].length}
                   </span>
                 </header>
+                {column.status === 'not_started' ? (
+                  <button
+                    className="button button--ghost issue-column__create"
+                    type="button"
+                    onClick={() => openNewIssue()}
+                  >
+                    Create issue
+                  </button>
+                ) : null}
                 <div className="issue-column__cards">
                   {issuesByStatus[column.status].map((issue) => (
-                    <IssueCard
-                      issue={issue}
-                      isUpdating={updatingIssueId === issue.id}
-                      key={issue.id}
-                      onStatusChange={(status) => void updateIssueStatus(issue, status)}
-                    />
+                    <IssueCard issue={issue} key={issue.id} />
                   ))}
-                  {issuesByStatus[column.status].length === 0 ? (
-                    <div className="issue-card issue-card--empty">No issues in this column</div>
-                  ) : null}
                 </div>
               </section>
             ))}
@@ -169,6 +147,7 @@ export function IssueBoard() {
             <label className="field">
               <span>Title</span>
               <input
+                ref={titleInputRef}
                 required
                 value={form.title}
                 onChange={(event) => setForm((currentForm) => ({ ...currentForm, title: event.target.value }))}
@@ -182,32 +161,22 @@ export function IssueBoard() {
                 onChange={(event) => setForm((currentForm) => ({ ...currentForm, description: event.target.value }))}
               />
             </label>
-            <div className="field-grid">
-              <label className="field">
-                <span>Status</span>
-                <select
-                  value={form.status}
-                  onChange={(event) =>
-                    setForm((currentForm) => ({ ...currentForm, status: event.target.value as IssueBoardStatus }))
-                  }
-                >
-                  {columns.map((column) => (
-                    <option key={column.status} value={column.status}>
-                      {column.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span>Priority</span>
-                <input
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={form.priority}
-                  onChange={(event) => setForm((currentForm) => ({ ...currentForm, priority: event.target.value }))}
-                />
-              </label>
-            </div>
+            <fieldset className="field priority-field">
+              <legend>Priority</legend>
+              <div className="segmented-control" aria-label="Priority">
+                {priorityOptions.map((option) => (
+                  <button
+                    aria-pressed={form.priority === option.value}
+                    className="segmented-control__option"
+                    key={option.value}
+                    type="button"
+                    onClick={() => setForm((currentForm) => ({ ...currentForm, priority: option.value }))}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
             <label className="field">
               <span>Labels</span>
               <input
@@ -235,25 +204,20 @@ export function IssueBoard() {
           </form>
         </div>
       ) : null}
+
+      <button className="button button--primary issue-board__fab" type="button" onClick={() => openNewIssue()}>
+        New issue
+      </button>
     </main>
   );
 }
 
-function IssueCard({
-  isUpdating,
-  issue,
-  onStatusChange,
-}: {
-  isUpdating: boolean;
-  issue: IssueResponseDto;
-  onStatusChange: (status: IssueBoardStatus) => void;
-}) {
+function IssueCard({ issue }: { issue: IssueResponseDto }) {
   return (
-    <article className="issue-card">
+    <a className="issue-card issue-card--link" href={`/issues/${issue.id}`}>
       <div className="issue-card__topline">
         <div>
           <h3>{issue.title}</h3>
-          <p>{issue.identifier}</p>
         </div>
         {normalizeStatus(issue.state) === 'done' ? (
           <span className="done-badge" aria-label="Done">
@@ -263,9 +227,13 @@ function IssueCard({
           </span>
         ) : null}
       </div>
-      <div className="issue-card__labels" aria-label="Labels">
-        {issue.labels.length > 0 ? issue.labels.map((label) => <span key={label}>{label}</span>) : <span>unlabeled</span>}
-      </div>
+      {issue.labels.length > 0 ? (
+        <div className="issue-card__labels" aria-label="Labels">
+          {issue.labels.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
+      ) : null}
       {issue.description ? <p className="issue-card__description">{issue.description}</p> : null}
       <div className="issue-card__meta">
         <span className="issue-card__meta-item">
@@ -287,21 +255,105 @@ function IssueCard({
           {issue.branch_name ?? 'main'}
         </span>
       </div>
-      <label className="issue-card__status">
-        <span className="sr-only">Move issue</span>
-        <select
-          aria-label={`Move ${issue.identifier}`}
-          disabled={isUpdating}
-          value={normalizeStatus(issue.state)}
-          onChange={(event) => onStatusChange(event.target.value as IssueBoardStatus)}
-        >
-          {columns.map((column) => (
-            <option key={column.status} value={column.status}>
-              {column.label}
-            </option>
-          ))}
-        </select>
-      </label>
-    </article>
+    </a>
   );
+}
+
+export function IssueDetails({ issueId }: { issueId: string }) {
+  const { error, isLoading, issue, reloadIssue } = useIssueDetails(issueId);
+
+  return (
+    <main className="app-shell">
+      <section className="issue-detail" aria-labelledby="issue-detail-title">
+        <a className="issue-detail__back" href="/">
+          Back to issues
+        </a>
+
+        {error ? (
+          <div className="notice" role="alert">
+            <span>{error}</span>
+            <button className="button button--ghost" type="button" onClick={() => void reloadIssue()}>
+              Retry
+            </button>
+          </div>
+        ) : null}
+
+        {isLoading ? <div className="issue-board__state">Loading issue...</div> : null}
+
+        {!isLoading && issue ? (
+          <article className="issue-detail__panel">
+            <header className="issue-detail__header">
+              <div>
+                <p className="issue-detail__eyebrow">{issue.identifier}</p>
+                <h1 id="issue-detail-title">{issue.title}</h1>
+              </div>
+              <span className="issue-detail__status">{formatStatus(issue.state)}</span>
+            </header>
+
+            {issue.description ? (
+              <section className="issue-detail__section" aria-labelledby="issue-description-title">
+                <h2 id="issue-description-title">Description</h2>
+                <p>{issue.description}</p>
+              </section>
+            ) : null}
+
+            <dl className="issue-detail__meta">
+              <div>
+                <dt>Priority</dt>
+                <dd>{issue.priority ? `P${issue.priority}` : 'No priority'}</dd>
+              </div>
+              <div>
+                <dt>Branch</dt>
+                <dd>{issue.branch_name ?? 'main'}</dd>
+              </div>
+              <div>
+                <dt>Blocked by</dt>
+                <dd>{issue.blocked_by.length}</dd>
+              </div>
+            </dl>
+
+            {issue.url ? (
+              <section className="issue-detail__section" aria-labelledby="issue-url-title">
+                <h2 id="issue-url-title">URL</h2>
+                <a className="issue-detail__link" href={issue.url}>
+                  {issue.url}
+                </a>
+              </section>
+            ) : null}
+
+            {issue.labels.length > 0 ? (
+              <section className="issue-detail__section" aria-labelledby="issue-labels-title">
+                <h2 id="issue-labels-title">Labels</h2>
+                <div className="issue-card__labels">
+                  {issue.labels.map((label) => (
+                    <span key={label}>{label}</span>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {issue.blocked_by.length > 0 ? (
+              <section className="issue-detail__section" aria-labelledby="issue-blockers-title">
+                <h2 id="issue-blockers-title">Blockers</h2>
+                <ul className="issue-detail__blockers">
+                  {issue.blocked_by.map((blocker) => (
+                    <li key={blocker.id ?? blocker.identifier}>
+                      <span>{blocker.identifier ?? blocker.id}</span>
+                      {blocker.state ? <span>{formatStatus(blocker.state)}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </article>
+        ) : null}
+      </section>
+    </main>
+  );
+}
+
+function formatStatus(state: string) {
+  const status = normalizeStatus(state);
+  const column = columns.find((candidate) => candidate.status === status);
+  return column?.label ?? 'Not started';
 }
