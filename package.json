@@ -4,18 +4,18 @@
   "private": true,
   "workspaces": [
     "apps/backend",
-    "apps/web"
+    "apps/ui"
   ],
   "scripts": {
-    "dev": "concurrently -n backend,web -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/web\"",
-    "dev:1": "dotenv -e stack1.env -- concurrently -n backend,web -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/web\"",
-    "dev:2": "dotenv -e stack2.env -- concurrently -n backend,web -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/web\"",
-    "dev:3": "dotenv -e stack3.env -- concurrently -n backend,web -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/web\"",
-    "dev:4": "dotenv -e stack4.env -- concurrently -n backend,web -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/web\"",
-    "dev:5": "dotenv -e stack5.env -- concurrently -n backend,web -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/web\"",
+    "dev": "concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
+    "dev:1": "dotenv -e stack1.env -- concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
+    "dev:2": "dotenv -e stack2.env -- concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
+    "dev:3": "dotenv -e stack3.env -- concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
+    "dev:4": "dotenv -e stack4.env -- concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
+    "dev:5": "dotenv -e stack5.env -- concurrently -n backend,ui -c cyan,magenta \"npm run dev -w apps/backend\" \"npm run dev -w apps/ui\"",
     "start:dev": "npm run dev",
-    "build": "npm run build -w apps/backend && npm run build -w apps/web",
-    "test": "npm run test -w apps/backend && npm run test -w apps/web"
+    "build": "npm run build -w apps/backend && npm run build -w apps/ui",
+    "test": "npm run test -w apps/backend && npm run test -w apps/ui"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

@@ -21,11 +21,11 @@ The backend listens on `http://localhost:3001` and persists data in `data/sympho
 To run multiple copies side by side, use the stack scripts:
 
 ```bash
-npm run dev:1 # UI 2000, backend 2003, data/database-1.sqlite
-npm run dev:2 # UI 2004, backend 2006, data/database-2.sqlite
-npm run dev:3 # UI 2008, backend 2010, data/database-3.sqlite
-npm run dev:4 # UI 2011, backend 2013, data/database-4.sqlite
-npm run dev:5 # UI 2014, backend 2016, data/database-5.sqlite
+npm run dev:1 # UI 2000, backend 2001, data/database-1.sqlite
+npm run dev:2 # UI 2002, backend 2003, data/database-2.sqlite
+npm run dev:3 # UI 2004, backend 2005, data/database-3.sqlite
+npm run dev:4 # UI 2006, backend 2007, data/database-4.sqlite
+npm run dev:5 # UI 2008, backend 2009, data/database-5.sqlite
 ```
 
 ## Real Codex Mode
@@ -51,7 +51,7 @@ Optional environment variables:
 ## Shape
 
 - `apps/backend`: NestJS API, SQLite persistence, orchestration queue, SSE event stream, Codex app-server client.
-- `apps/web`: React/Vite board with task creation, drag-to-move columns, run controls, and live run logs.
+- `apps/ui`: React/Vite board with task creation, drag-to-move columns, run controls, and live run logs.
 
 The implementation maps the Symphony spec into a visual demo:
 

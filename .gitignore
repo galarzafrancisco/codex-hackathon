@@ -4,5 +4,5 @@ dist/
 data/
 apps/**/data/
 apps/backend/dist/
-apps/web/dist/
+apps/ui/dist/
 *.log

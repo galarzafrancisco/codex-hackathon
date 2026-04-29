@@ -1,0 +1,97 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--surface-muted);
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-sans);
+  background: var(--surface-muted);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.app-shell {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: var(--space-6);
+}
+
+.workspace {
+  display: grid;
+  width: min(100%, 720px);
+  gap: var(--space-5);
+  padding: var(--space-7);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.status-dot {
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.intro-copy {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.intro-copy h1,
+.intro-copy p {
+  margin: 0;
+}
+
+.intro-copy h1 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1;
+}
+
+.intro-copy p {
+  max-width: 36rem;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: var(--space-4);
+  }
+
+  .workspace {
+    padding: var(--space-5);
+  }
+}
