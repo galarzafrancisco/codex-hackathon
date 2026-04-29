@@ -7,6 +7,62 @@ export interface HealthResponseDto {
   timestamp: string;
 }
 
+export interface CodexReasoningEffortResponseDto {
+  reasoning_effort: string;
+  description?: string | null;
+}
+
+export interface CodexModelResponseDto {
+  id: string;
+  model: string;
+  display_name?: string | null;
+  hidden: boolean;
+  default_reasoning_effort?: string | null;
+  supported_reasoning_efforts: CodexReasoningEffortResponseDto[];
+  input_modalities: string[];
+  supports_personality?: boolean | null;
+  is_default: boolean;
+}
+
+export interface ListCodexModelsResponseDto {
+  models: CodexModelResponseDto[];
+  next_cursor?: string | null;
+}
+
+export interface CodexThreadStatusResponseDto {
+  type: string;
+  active_flags: string[];
+}
+
+export interface CodexThreadResponseDto {
+  id: string;
+  name?: string | null;
+  preview?: string | null;
+  ephemeral: boolean;
+  model_provider?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  status?: CodexThreadStatusResponseDto;
+}
+
+export interface ListCodexThreadsResponseDto {
+  threads: CodexThreadResponseDto[];
+  next_cursor?: string | null;
+}
+
+export interface StartCodexThreadRequestDto {
+  model?: string;
+  cwd?: string;
+  approval_policy?: 'untrusted' | 'on-request' | 'never';
+  sandbox?: 'readOnly' | 'workspaceWrite' | 'dangerFullAccess';
+  personality?: string;
+  service_name?: string;
+}
+
+export interface StartCodexThreadResponseDto {
+  thread: CodexThreadResponseDto;
+}
+
 export interface IssueBlockerRefResponseDto {
   id: string | null;
   identifier: string | null;

@@ -23,6 +23,168 @@
         ]
       }
     },
+    "/api/v1/codex/models": {
+      "get": {
+        "operationId": "CodexController_listModels",
+        "parameters": [
+          {
+            "name": "include_hidden",
+            "required": false,
+            "in": "query",
+            "description": "Include models Codex marks as hidden from the default picker.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "Opaque pagination cursor returned by Codex app-server.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of models to return.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Models available to Codex app-server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListCodexModelsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Codex app-server models",
+        "tags": [
+          "codex"
+        ]
+      }
+    },
+    "/api/v1/codex/threads": {
+      "get": {
+        "operationId": "CodexController_listThreads",
+        "parameters": [
+          {
+            "name": "search_term",
+            "required": false,
+            "in": "query",
+            "description": "Search stored thread summaries and metadata.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cwd",
+            "required": false,
+            "in": "query",
+            "description": "Restrict results to threads whose current working directory exactly matches this path.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "archived",
+            "required": false,
+            "in": "query",
+            "description": "List archived threads instead of active threads.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort_key",
+            "required": false,
+            "in": "query",
+            "description": "Thread sort key.",
+            "schema": {
+              "enum": [
+                "created_at",
+                "updated_at"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "Opaque pagination cursor returned by Codex app-server.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of threads to return.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Threads returned by Codex app-server.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListCodexThreadsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List Codex app-server threads",
+        "tags": [
+          "codex"
+        ]
+      },
+      "post": {
+        "operationId": "CodexController_startThread",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Options for the new Codex thread.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartCodexThreadRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The Codex thread was started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartCodexThreadResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Start a new Codex app-server thread",
+        "tags": [
+          "codex"
+        ]
+      }
+    },
     "/api/v1/issues": {
       "get": {
         "operationId": "IssuesController_listIssues",
@@ -192,6 +354,280 @@
           "status",
           "service",
           "timestamp"
+        ]
+      },
+      "CodexReasoningEffortResponseDto": {
+        "type": "object",
+        "properties": {
+          "reasoning_effort": {
+            "type": "string",
+            "description": "Reasoning effort value accepted by the Codex model.",
+            "example": "medium"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the effort option.",
+            "example": "Balances latency and reasoning depth.",
+            "nullable": true
+          }
+        },
+        "required": [
+          "reasoning_effort"
+        ]
+      },
+      "CodexModelResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable model identifier returned by Codex app-server.",
+            "example": "gpt-5.4"
+          },
+          "model": {
+            "type": "string",
+            "description": "Model value to send when starting Codex threads.",
+            "example": "gpt-5.4"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Display label suitable for model selectors.",
+            "example": "GPT-5.4",
+            "nullable": true
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Whether Codex marks this model as hidden from default pickers.",
+            "example": false
+          },
+          "default_reasoning_effort": {
+            "type": "string",
+            "description": "Default reasoning effort recommended by Codex for this model.",
+            "example": "medium",
+            "nullable": true
+          },
+          "supported_reasoning_efforts": {
+            "description": "Reasoning effort options supported by the model.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodexReasoningEffortResponseDto"
+            }
+          },
+          "input_modalities": {
+            "description": "Input modalities accepted by the model.",
+            "example": [
+              "text",
+              "image"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supports_personality": {
+            "type": "boolean",
+            "description": "Whether the model supports personality-specific instructions.",
+            "example": true,
+            "nullable": true
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Whether Codex marks this as the recommended default model.",
+            "example": true
+          }
+        },
+        "required": [
+          "id",
+          "model",
+          "hidden",
+          "supported_reasoning_efforts",
+          "input_modalities",
+          "is_default"
+        ]
+      },
+      "ListCodexModelsResponseDto": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "description": "Models returned by Codex app-server.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodexModelResponseDto"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Opaque cursor for the next page, or null when all models have been returned.",
+            "example": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "models"
+        ]
+      },
+      "CodexThreadStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Runtime thread status type reported by Codex app-server.",
+            "example": "notLoaded"
+          },
+          "active_flags": {
+            "description": "Active status flags when the thread is currently loaded and running.",
+            "example": [
+              "waitingOnApproval"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "active_flags"
+        ]
+      },
+      "CodexThreadResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable Codex thread identifier.",
+            "example": "thr_123"
+          },
+          "name": {
+            "type": "string",
+            "description": "User-facing thread name when Codex has assigned one.",
+            "example": "Bug bash notes",
+            "nullable": true
+          },
+          "preview": {
+            "type": "string",
+            "description": "Preview text for the thread history UI.",
+            "example": "Fix tests",
+            "nullable": true
+          },
+          "ephemeral": {
+            "type": "boolean",
+            "description": "Whether the Codex thread is ephemeral.",
+            "example": false
+          },
+          "model_provider": {
+            "type": "string",
+            "description": "Model provider recorded for the thread.",
+            "example": "openai",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Thread creation time as an ISO timestamp when Codex provides it.",
+            "example": "2026-04-29T04:20:00.000Z",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last thread update time as an ISO timestamp when Codex provides it.",
+            "example": "2026-04-29T04:30:00.000Z",
+            "nullable": true
+          },
+          "status": {
+            "description": "Runtime status reported by Codex app-server.",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CodexThreadStatusResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "ephemeral"
+        ]
+      },
+      "ListCodexThreadsResponseDto": {
+        "type": "object",
+        "properties": {
+          "threads": {
+            "description": "Threads returned by Codex app-server.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CodexThreadResponseDto"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Opaque cursor for the next page, or null when all threads have been returned.",
+            "example": null,
+            "nullable": true
+          }
+        },
+        "required": [
+          "threads"
+        ]
+      },
+      "StartCodexThreadRequestDto": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model to use for the new Codex thread. Omit to let Codex choose its default.",
+            "example": "gpt-5.4"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory for the new Codex thread.",
+            "example": "/Users/me/project"
+          },
+          "approval_policy": {
+            "type": "string",
+            "description": "Approval policy override for the new thread.",
+            "enum": [
+              "untrusted",
+              "on-request",
+              "never"
+            ],
+            "example": "on-request"
+          },
+          "sandbox": {
+            "type": "string",
+            "description": "Sandbox policy override for the new thread.",
+            "enum": [
+              "readOnly",
+              "workspaceWrite",
+              "dangerFullAccess"
+            ],
+            "example": "workspaceWrite"
+          },
+          "personality": {
+            "type": "string",
+            "description": "Codex personality preset for the new thread.",
+            "example": "friendly"
+          },
+          "service_name": {
+            "type": "string",
+            "description": "Service name attached to thread-level Codex metrics.",
+            "example": "codex_symphony_demo"
+          }
+        }
+      },
+      "StartCodexThreadResponseDto": {
+        "type": "object",
+        "properties": {
+          "thread": {
+            "description": "Thread created by Codex app-server.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CodexThreadResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "thread"
         ]
       },
       "IssueBlockerRefResponseDto": {
