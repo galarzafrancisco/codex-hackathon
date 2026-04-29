@@ -63,6 +63,31 @@ export interface StartCodexThreadResponseDto {
   thread: CodexThreadResponseDto;
 }
 
+export interface CodexMentionInputDto {
+  name: string;
+  path: string;
+}
+
+export interface CodexSkillInputDto {
+  name: string;
+  path: string;
+}
+
+export interface CodexLocalImageInputDto {
+  path: string;
+}
+
+export interface SteerCodexTurnRequestDto {
+  message: string;
+  mentions?: CodexMentionInputDto[];
+  skills?: CodexSkillInputDto[];
+  local_images?: CodexLocalImageInputDto[];
+}
+
+export interface SteerCodexTurnResponseDto {
+  turn_id: string;
+}
+
 export interface IssueBlockerRefResponseDto {
   id: string | null;
   identifier: string | null;
