@@ -38,11 +38,11 @@ The generated spec is written to `apps/backend/openapi.json`.
 To run multiple copies side by side, use the stack scripts:
 
 ```bash
-npm run dev:1 # backend 2001
-npm run dev:2 # backend 2003
-npm run dev:3 # backend 2005
-npm run dev:4 # backend 2007
-npm run dev:5 # backend 2009
+npm run dev:1 # UI 2000, backend 2001, data/database-1.sqlite
+npm run dev:2 # UI 2002, backend 2003, data/database-2.sqlite
+npm run dev:3 # UI 2004, backend 2005, data/database-3.sqlite
+npm run dev:4 # UI 2006, backend 2007, data/database-4.sqlite
+npm run dev:5 # UI 2008, backend 2009, data/database-5.sqlite
 ```
 
 ## Environment
@@ -51,5 +51,14 @@ npm run dev:5 # backend 2009
 
 ## Shape
 
-- `apps/backend`: NestJS API with DTO-documented OpenAPI output.
+- `apps/backend`: NestJS API, SQLite persistence, orchestration queue, SSE event stream, Codex app-server client.
+- `apps/ui`: React/Vite board with task creation, drag-to-move columns, run controls, and live run logs.
 - Root `package.json`: npm workspaces monorepo scripts for build, dev, test, and OpenAPI generation.
+
+The implementation maps the Symphony spec into a visual demo:
+
+- task board as the issue tracker/control plane
+- one workspace per task
+- single orchestrator authority for dispatch, cancellation, and run state
+- persisted tasks, runs, and logs
+- status surface driven by backend events
