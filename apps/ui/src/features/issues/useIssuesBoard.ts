@@ -6,7 +6,7 @@ export type IssueBoardStatus = 'not_started' | 'in_progress' | 'for_review' | 'd
 
 export interface NewIssueForm {
   title: string;
-  identifier: string;
+  description: string;
   labels: string;
   priority: string;
   branchName: string;
@@ -15,7 +15,7 @@ export interface NewIssueForm {
 
 const initialNewIssueForm: NewIssueForm = {
   title: '',
-  identifier: '',
+  description: '',
   labels: '',
   priority: '',
   branchName: '',
@@ -62,8 +62,9 @@ export function useIssuesBoard() {
 
     try {
       const body: CreateIssueRequestDto = {
-        identifier: form.identifier.trim(),
+        identifier: createIssueIdentifier(form.title),
         title: form.title.trim(),
+        description: normalizeOptionalString(form.description),
         state: form.status,
         labels: parseLabels(form.labels),
         priority: parsePriority(form.priority),
@@ -176,6 +177,18 @@ function parsePriority(value: string): number | null {
 function normalizeOptionalString(value: string): string | null {
   const trimmedValue = value.trim();
   return trimmedValue.length > 0 ? trimmedValue : null;
+}
+
+function createIssueIdentifier(title: string): string {
+  const slug = title
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 12);
+  const timestamp = Date.now().toString(36).toUpperCase();
+
+  return `${slug || 'ISSUE'}-${timestamp}`;
 }
 
 function getErrorMessage(cause: unknown): string {

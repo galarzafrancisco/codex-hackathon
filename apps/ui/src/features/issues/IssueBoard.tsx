@@ -66,7 +66,7 @@ export function IssueBoard() {
   async function handleCreateIssue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!form.title.trim() || !form.identifier.trim()) {
+    if (!form.title.trim()) {
       return;
     }
 
@@ -175,12 +175,11 @@ export function IssueBoard() {
               />
             </label>
             <label className="field">
-              <span>Identifier</span>
-              <input
-                required
-                placeholder="APP-149"
-                value={form.identifier}
-                onChange={(event) => setForm((currentForm) => ({ ...currentForm, identifier: event.target.value }))}
+              <span>Description</span>
+              <textarea
+                rows={4}
+                value={form.description}
+                onChange={(event) => setForm((currentForm) => ({ ...currentForm, description: event.target.value }))}
               />
             </label>
             <div className="field-grid">
@@ -267,6 +266,7 @@ function IssueCard({
       <div className="issue-card__labels" aria-label="Labels">
         {issue.labels.length > 0 ? issue.labels.map((label) => <span key={label}>{label}</span>) : <span>unlabeled</span>}
       </div>
+      {issue.description ? <p className="issue-card__description">{issue.description}</p> : null}
       <div className="issue-card__meta">
         <span className="issue-card__meta-item">
           <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
