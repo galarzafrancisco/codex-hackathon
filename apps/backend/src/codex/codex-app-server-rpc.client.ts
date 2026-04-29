@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CodexAppServerProcessService } from './codex-app-server-process.service';
 
 type JsonObject = Record<string, unknown>;
@@ -21,7 +21,10 @@ export class CodexAppServerRpcClient {
   private readonly logger = new Logger(CodexAppServerRpcClient.name);
   private nextId = 1;
 
-  constructor(private readonly processService: CodexAppServerProcessService) {}
+  constructor(
+    @Inject(CodexAppServerProcessService)
+    private readonly processService: CodexAppServerProcessService,
+  ) {}
 
   async request<TResponse>(method: string, params?: JsonObject): Promise<TResponse> {
     const webSocketUrl = await this.processService.getWebSocketUrl();
